@@ -1,3 +1,5 @@
+import Dummy from "./Dummy";
+
 const Hello = () => {
   return null;
 };

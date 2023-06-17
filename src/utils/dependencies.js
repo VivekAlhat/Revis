@@ -1,12 +1,13 @@
 import * as fs from "fs";
 import * as parser from "@babel/parser";
 import _traverse from "@babel/traverse";
-import { resolve, extname } from "path";
+import { resolve, extname, dirname, relative } from "path";
 
 const traverse = _traverse.default;
 
-const extractComponentDependencies = (filepath) => {
-  let dependencies = [];
+const getComponentDependencies = (filepath) => {
+  const dependencies = [];
+  const used = new Set();
   const code = fs.readFileSync(filepath, "utf-8");
 
   const PARSER_OPTIONS = {
@@ -19,26 +20,99 @@ const extractComponentDependencies = (filepath) => {
   traverse(AST, {
     ImportDeclaration: ({ node }) => {
       const dependency = node.source.value;
-      const component = getComponentName(dependency);
+      const specifiers = node.specifiers;
 
-      if (extname(dependency) === ".css") {
-        return;
-      }
-
-      dependencies.push({
-        component,
-        path: dependency,
-      });
+      getDependencies(dependency, specifiers, dependencies);
+    },
+    JSXIdentifier: ({ node }) => {
+      used.add(node.name);
     },
   });
 
-  return dependencies;
+  const updatedDependencies = dependencies.map((dependency) => {
+    const isUsed = used.has(dependency.component);
+
+    if (dependency.type === "CSS") {
+      return {
+        ...dependency,
+        isUsed: true,
+      };
+    }
+
+    return {
+      ...dependency,
+      isUsed,
+    };
+  });
+
+  return updatedDependencies;
 };
 
-const getComponentName = (dependency) => {
-  return dependency.split("/").pop();
+const getComponentType = (dependency) => {
+  if (extname(dependency) === ".css") {
+    return "CSS";
+  }
+  return "Component";
 };
 
-const filepath = resolve("src/App.jsx");
-const dependencies = extractComponentDependencies(filepath);
-console.log(dependencies);
+const getImportType = (type) => {
+  if (type === "ImportSpecifier") {
+    return "Named";
+  }
+  return "Default";
+};
+
+const getDependencies = (dependency, specifiers, dependencies) => {
+  const type = getComponentType(dependency);
+
+  if (specifiers.length > 0) {
+    specifiers.map((specifier) => {
+      const specifierType = specifier.type;
+      const component = specifier.local.name;
+      const importType = getImportType(specifierType);
+
+      dependencies.push({
+        component,
+        type,
+        path: dependency,
+        import: importType,
+      });
+    });
+  } else {
+    if (extname(dependency) === ".css") {
+      const name = dependency.split("/").pop();
+      dependencies.push({
+        component: name,
+        type,
+        path: dependency,
+        import: "Stylesheet",
+      });
+    }
+  }
+};
+
+const getComponentDependenciesRecursive = (folder, componentDependencies) => {
+  const files = fs.readdirSync(folder);
+
+  files.forEach((file) => {
+    const filePath = resolve(folder, file);
+    const stats = fs.statSync(filePath);
+
+    if (stats.isDirectory()) {
+      getComponentDependenciesRecursive(filePath, componentDependencies);
+    } else {
+      if (extname(filePath) === ".jsx") {
+        const directory = relative(".", dirname(filePath)).replace(/\\/g, "/");
+        const dependencies = getComponentDependencies(filePath);
+        const name = filePath.split("\\").pop();
+        componentDependencies.push({ directory, name, dependencies });
+      }
+    }
+  });
+  return componentDependencies;
+};
+
+const folder = resolve("src");
+const componentDependencies = [];
+const deps = getComponentDependenciesRecursive(folder, componentDependencies);
+console.log(deps);
