@@ -27,6 +27,12 @@ const getComponentDependencies = (filepath) => {
     JSXIdentifier: ({ node }) => {
       used.add(node.name);
     },
+    CallExpression: ({ node }) => {
+      used.add(node.callee.name);
+    },
+    MemberExpression: ({ node }) => {
+      used.add(node.object.name);
+    },
   });
 
   const updatedDependencies = dependencies.map((dependency) => {
@@ -115,4 +121,4 @@ const getComponentDependenciesRecursive = (folder, componentDependencies) => {
 const folder = resolve("src");
 const componentDependencies = [];
 const deps = getComponentDependenciesRecursive(folder, componentDependencies);
-console.log(deps);
+export { deps };
