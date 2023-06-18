@@ -20,7 +20,8 @@ const prepareFlowData = () => {
     flow.nodes.push(node);
 
     dependencies.forEach((dependency) => {
-      const { component, isUsed } = dependency;
+      const { component, isUsed, type } = dependency;
+      const isNotAComponent = type === "CSS" || type === "JSON";
       const depNode = {
         id: component,
         type: "default",
@@ -37,7 +38,9 @@ const prepareFlowData = () => {
         source: sourceNodeId,
         target: targetNodeId,
         animated: isUsed ? false : true,
-        style: { stroke: isUsed ? "#000" : "#ff0505" },
+        style: {
+          stroke: isUsed ? (isNotAComponent ? "#F86F03" : "#000") : "#ff0505",
+        },
         type: "default",
       };
 

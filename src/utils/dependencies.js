@@ -38,7 +38,7 @@ const getComponentDependencies = (filepath) => {
   const updatedDependencies = dependencies.map((dependency) => {
     const isUsed = used.has(dependency.component);
 
-    if (dependency.type === "CSS") {
+    if (dependency.type === "CSS" || dependency.type === "JSON") {
       return {
         ...dependency,
         isUsed: true,
@@ -57,6 +57,8 @@ const getComponentDependencies = (filepath) => {
 const getComponentType = (dependency) => {
   if (extname(dependency) === ".css") {
     return "CSS";
+  } else if (extname(dependency) === ".json") {
+    return "JSON";
   }
   return "Component";
 };
@@ -72,6 +74,16 @@ const getDependencies = (dependency, specifiers, dependencies) => {
   const type = getComponentType(dependency);
 
   if (specifiers.length > 0) {
+    if (extname(dependency) === ".json") {
+      dependencies.push({
+        component: dependency,
+        type,
+        path: dependency,
+        import: "JSON",
+      });
+      return;
+    }
+
     specifiers.map((specifier) => {
       const specifierType = specifier.type;
       const component = specifier.local.name;
@@ -86,9 +98,8 @@ const getDependencies = (dependency, specifiers, dependencies) => {
     });
   } else {
     if (extname(dependency) === ".css") {
-      const name = dependency.split("/").pop();
       dependencies.push({
-        component: name,
+        component: dependency,
         type,
         path: dependency,
         import: "Stylesheet",
@@ -121,4 +132,13 @@ const getComponentDependenciesRecursive = (folder, componentDependencies) => {
 const folder = resolve("src");
 const componentDependencies = [];
 const deps = getComponentDependenciesRecursive(folder, componentDependencies);
+
+fs.writeFile("./dependencies.json", JSON.stringify(deps), "utf-8", (err) => {
+  if (err) {
+    console.error("Error writing JSON file:", err);
+    return;
+  }
+  console.log("JSON file has been saved.");
+});
+
 export { deps };
