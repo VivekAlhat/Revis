@@ -68,6 +68,7 @@ const LayoutFlow = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
+
   const onLayout = useCallback(
     (direction) => {
       const { nodes: layoutedNodes, edges: layoutedEdges } =
@@ -89,8 +90,9 @@ const LayoutFlow = () => {
       onConnect={onConnect}
       connectionLineType={ConnectionLineType.SmoothStep}
       fitView
+      fitViewOptions={{ minZoom: 100 }}
     >
-      <Panel position="top-right">
+      <Panel position="top-right" style={{ display: "flex", gap: 5 }}>
         <button onClick={() => onLayout("TB")}>vertical layout</button>
         <button onClick={() => onLayout("LR")}>horizontal layout</button>
       </Panel>

@@ -10,7 +10,7 @@
 - [x] Add support for exporting dependencies and flow to JSON
 - [x] Add support for stylesheets and data files
 - [x] Add support for Dagre tree
-- [ ] Add support for directory visualization
+- [x] Add support for directory visualization
 - [ ] Add support for highlighting nodes on edge selection
 - [ ] Add support for Elk tree
 - [ ] Add support for exporting dependency graph to image (PNG,JPG,SVG) file

@@ -8,7 +8,7 @@ const prepareFlowData = () => {
   };
 
   data.forEach((item) => {
-    const { name, dependencies } = item;
+    const { name, dependencies, directory } = item;
 
     const node = {
       id: name,
@@ -17,7 +17,27 @@ const prepareFlowData = () => {
       position: { x: 0, y: 0 },
     };
 
+    const directoryNode = {
+      id: directory,
+      type: "default",
+      data: { label: directory },
+      style: { backgroundColor: "#D5FFD0" },
+      position: { x: 0, y: 0 },
+    };
+
     flow.nodes.push(node);
+    flow.nodes.push(directoryNode);
+
+    const sourceNodeId = directory;
+    const targetNodeId = name;
+    const edge = {
+      id: `${sourceNodeId}-${targetNodeId}`,
+      source: sourceNodeId,
+      target: targetNodeId,
+      type: "default",
+    };
+
+    flow.edges.push(edge);
 
     dependencies.forEach((dependency) => {
       const { component, isUsed, type } = dependency;
@@ -27,6 +47,7 @@ const prepareFlowData = () => {
         type: "default",
         data: { label: component },
         position: { x: 0, y: 0 },
+        style: { backgroundColor: isNotAComponent && "#FDE5EC" },
       };
 
       flow.nodes.push(depNode);
