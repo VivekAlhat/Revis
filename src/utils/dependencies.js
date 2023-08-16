@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import * as os from "os";
 import * as parser from "@babel/parser";
 import _traverse from "@babel/traverse";
 import { resolve, extname, dirname, relative } from "path";
@@ -121,7 +122,12 @@ const getComponentDependenciesRecursive = (folder, componentDependencies) => {
       if (extname(filePath) === ".jsx") {
         const directory = relative(".", dirname(filePath)).replace(/\\/g, "/");
         const dependencies = getComponentDependencies(filePath);
-        const name = filePath.split("\\").pop();
+        let name = null;
+        if (os.platform() === "win32") {
+          name = filePath.split("\\").pop();
+        } else {
+          name = filePath.split("/").pop();
+        }
         componentDependencies.push({ directory, name, dependencies });
       }
     }

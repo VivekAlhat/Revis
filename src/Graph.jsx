@@ -7,7 +7,7 @@ import ReactFlow, {
   useEdgesState,
 } from "reactflow";
 import dagre from "dagre";
-import data from "../../data.json";
+import data from "../data.json";
 
 const initialNodes = data.nodes;
 const initialEdges = data.edges;
